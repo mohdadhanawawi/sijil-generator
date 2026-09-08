@@ -1,16 +1,27 @@
-// Browser-only helpers for drawing a name onto a certificate template with
-// <canvas>.
+// Browser-only helpers for drawing text fields onto a certificate template
+// with <canvas>.
+
+export type CertificateField = {
+  id: string;
+  label: string;
+  // The one field bound to the names list - its text is supplied per
+  // certificate at draw time. Every other field is static: the same text
+  // on every certificate in a batch (e.g. certificate title, date).
+  isDynamic: boolean;
+  text: string;
+  xPct: number;
+  yPct: number;
+  fontSizePct: number;
+  fontFamily: string;
+  fontWeight: string;
+  fontColor: string;
+};
 
 export type CertificateTemplate = {
   imageDataUrl: string;
   imageWidth: number;
   imageHeight: number;
-  nameXPct: number;
-  nameYPct: number;
-  fontSizePct: number;
-  fontFamily: string;
-  fontWeight: string;
-  fontColor: string;
+  fields: CertificateField[];
 };
 
 let cachedImage: { src: string; img: HTMLImageElement } | null = null;
@@ -31,14 +42,21 @@ function loadImage(src: string): Promise<HTMLImageElement> {
 // Canvas only picks up a font once the browser has actually loaded it -
 // without this, the first draw after switching fonts can silently fall
 // back to a default font.
-export async function ensureFontLoaded(
-  fontFamily: string,
-  fontWeight: string,
+export async function ensureFontsLoaded(
+  fields: Pick<CertificateField, "fontFamily" | "fontWeight">[],
   sizePx = 48
 ): Promise<void> {
   if (typeof document === "undefined" || !("fonts" in document)) return;
+  const seen = new Set<string>();
+  const loads: Promise<unknown>[] = [];
+  for (const { fontFamily, fontWeight } of fields) {
+    const key = `${fontWeight}|${fontFamily}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    loads.push(document.fonts.load(`${fontWeight} ${sizePx}px ${fontFamily}`).catch(() => {}));
+  }
   try {
-    await document.fonts.load(`${fontWeight} ${sizePx}px ${fontFamily}`);
+    await Promise.all(loads);
     await document.fonts.ready;
   } catch {
     // Best-effort - canvas falls back to a default font if this fails.
@@ -48,7 +66,7 @@ export async function ensureFontLoaded(
 export async function drawCertificate(
   canvas: HTMLCanvasElement,
   template: CertificateTemplate,
-  name: string
+  dynamicValue: string
 ): Promise<void> {
   const img = await loadImage(template.imageDataUrl);
   canvas.width = template.imageWidth;
@@ -59,12 +77,16 @@ export async function drawCertificate(
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-  const fontSize = Math.max(1, Math.round(template.fontSizePct * template.imageWidth));
-  ctx.font = `${template.fontWeight} ${fontSize}px ${template.fontFamily}`;
-  ctx.fillStyle = template.fontColor;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(name, template.nameXPct * canvas.width, template.nameYPct * canvas.height);
+  for (const field of template.fields) {
+    const text = field.isDynamic ? dynamicValue : field.text;
+    if (!text) continue;
+    const fontSize = Math.max(1, Math.round(field.fontSizePct * template.imageWidth));
+    ctx.font = `${field.fontWeight} ${fontSize}px ${field.fontFamily}`;
+    ctx.fillStyle = field.fontColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(text, field.xPct * canvas.width, field.yPct * canvas.height);
+  }
 }
 
 export function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {

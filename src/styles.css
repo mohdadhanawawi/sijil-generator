@@ -172,6 +172,11 @@ textarea {
   cursor: not-allowed;
 }
 
+.btn-sm {
+  padding: 0.4rem 0.9rem;
+  font-size: 0.78rem;
+}
+
 .btn-primary {
   background: var(--accent);
   color: white;
@@ -287,4 +292,51 @@ textarea {
   margin: 0;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.field-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.field-tab-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.field-tab {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 999px;
+  padding: 0.4rem 1.6rem 0.4rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.field-tab.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  color: var(--accent);
+}
+
+.field-tab-remove {
+  position: absolute;
+  right: 0.3rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.1rem;
+}
+
+.field-tab-remove:hover {
+  color: var(--danger);
 }

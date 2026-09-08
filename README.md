@@ -12,6 +12,9 @@ server, tiada database, tiada perkhidmatan luar diperlukan.
   pertama sahaja digunakan, diconvert jadi imej terus dalam pelayar)
 - Klik terus pada sijil untuk letak kedudukan nama — pilih fon, saiz, dan
   warna teks, dengan pratonton langsung
+- Tambah teks statik lain selain nama (cth. tajuk sijil, tarikh, jawatan
+  pengurniaan) — setiap satu ada kedudukan, fon, saiz & warna sendiri, dan
+  sama pada setiap sijil dalam satu batch (bukan berubah ikut nama)
 - Senarai nama: taip terus (satu nama satu baris) atau muat naik fail
   CSV/TXT (nama diambil dari lajur pertama)
 - Jana sijil untuk semua nama sekali gus, muat turun sebagai satu fail ZIP
@@ -44,7 +47,7 @@ var atau backend diperlukan.
 ```
 src/
   App.tsx                Studio sijil (upload templat, letak nama, senarai nama, jana ZIP)
-  certificateRender.ts   Lukis nama pada templat sijil (canvas)
+  certificateRender.ts   Lukis semua medan teks (nama + teks statik) pada templat sijil (canvas)
   pdfTemplate.ts         Convert muka surat pertama PDF templat jadi imej (pdf.js, lazy-loaded)
   parseNames.ts          Parse senarai nama dari teks/fail CSV
   fonts.ts               Pilihan fon untuk teks sijil
