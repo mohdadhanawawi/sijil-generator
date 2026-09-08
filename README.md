@@ -8,7 +8,8 @@ server, tiada database, tiada perkhidmatan luar diperlukan.
 
 ## Ciri-ciri
 
-- Muat naik imej templat sijil (JPG/PNG)
+- Muat naik templat sijil sebagai imej (JPG/PNG) atau PDF (muka surat
+  pertama sahaja digunakan, diconvert jadi imej terus dalam pelayar)
 - Klik terus pada sijil untuk letak kedudukan nama — pilih fon, saiz, dan
   warna teks, dengan pratonton langsung
 - Senarai nama: taip terus (satu nama satu baris) atau muat naik fail
@@ -44,6 +45,7 @@ var atau backend diperlukan.
 src/
   App.tsx                Studio sijil (upload templat, letak nama, senarai nama, jana ZIP)
   certificateRender.ts   Lukis nama pada templat sijil (canvas)
+  pdfTemplate.ts         Convert muka surat pertama PDF templat jadi imej (pdf.js, lazy-loaded)
   parseNames.ts          Parse senarai nama dari teks/fail CSV
   fonts.ts               Pilihan fon untuk teks sijil
   styles.css             Reka bentuk halaman

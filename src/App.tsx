@@ -49,6 +49,7 @@ export default function App() {
 
   const [namesText, setNamesText] = useState("");
   const [autosaveNote, setAutosaveNote] = useState<string | null>(null);
+  const [isProcessingTemplate, setIsProcessingTemplate] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -113,8 +114,22 @@ export default function App() {
 
   const handleTemplateFile = useCallback((file: File) => {
     setError(null);
+
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+    if (isPdf) {
+      setIsProcessingTemplate(true);
+      // Dynamically imported so the ~700KB pdf.js library is only
+      // downloaded by people who actually upload a PDF template.
+      import("./pdfTemplate")
+        .then(({ renderPdfFirstPage }) => renderPdfFirstPage(file))
+        .then(({ dataUrl, width, height }) => setImage({ dataUrl, width, height }))
+        .catch(() => setError("Gagal proses PDF. Pastikan fail PDF sah dan tidak rosak."))
+        .finally(() => setIsProcessingTemplate(false));
+      return;
+    }
+
     if (!file.type.startsWith("image/")) {
-      setError("Sila muat naik fail imej (JPG/PNG).");
+      setError("Sila muat naik fail imej (JPG/PNG) atau PDF.");
       return;
     }
     const reader = new FileReader();
@@ -233,21 +248,23 @@ export default function App() {
       <main className="layout">
         <section className="panel">
           <div className="field">
-            <label htmlFor="templateFile">Templat Sijil (imej)</label>
+            <label htmlFor="templateFile">Templat Sijil (imej atau PDF)</label>
             <p className="hint">
-              Muat naik sampel sijil (JPG/PNG). Klik pada sijil di bawah untuk letak kedudukan
-              nama.
+              Muat naik sampel sijil (JPG/PNG/PDF). Untuk PDF, muka surat pertama sahaja yang
+              digunakan. Klik pada sijil di bawah untuk letak kedudukan nama.
             </p>
             <input
               id="templateFile"
               type="file"
-              accept="image/*"
+              accept="image/*,.pdf,application/pdf"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) handleTemplateFile(file);
               }}
             />
           </div>
+
+          {isProcessingTemplate && <p className="hint">Memproses PDF...</p>}
 
           {config ? (
             <>
@@ -305,7 +322,7 @@ export default function App() {
               </div>
             </>
           ) : (
-            <p className="empty-hint">Muat naik imej sijil untuk mula.</p>
+            <p className="empty-hint">Muat naik imej atau PDF sijil untuk mula.</p>
           )}
 
           {error && <p className="error">{error}</p>}
