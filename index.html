@@ -1,22 +1,486 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ms">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sijil Generator</title>
-    <meta
-      name="description"
-      content="Muat naik templat sijil, masukkan senarai nama, jana sijil untuk semua orang sekali gus."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@700&family=Playfair+Display:wght@700&display=swap"
-      rel="stylesheet"
-    />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jana Slip Pengesahan Latihan - Unit Fisioterapi HTA</title>
+<style>
+  :root {
+    --navy: #123a5c;
+    --navy-dark: #0b2740;
+    --border: #c9d2da;
+    --bg: #eef2f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: var(--bg);
+    margin: 0;
+    padding: 24px;
+    color: #1c2a33;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+
+  .panel {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin-bottom: 18px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .panel h2 {
+    font-size: 15px;
+    margin: 0 0 4px 0;
+    color: var(--navy-dark);
+  }
+  .panel .desc { font-size: 12.8px; color: #6b7a85; margin-bottom: 12px; line-height: 1.5; }
+
+  textarea#pasteArea {
+    width: 100%;
+    min-height: 160px;
+    font-family: 'Consolas', monospace;
+    font-size: 12px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    resize: vertical;
+  }
+
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 12px; }
+  select {
+    flex: 1;
+    min-width: 240px;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  button {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  button:hover { background: var(--navy-dark); }
+  button.secondary { background: #fff; color: var(--navy); border: 1px solid var(--navy); }
+  button:disabled { background: #b8c2ca; cursor: not-allowed; }
+  .status { font-size: 12.8px; color: #6b7a85; margin-top: 8px; }
+  .status.ok { color: #1a7a3a; }
+  .status.err { color: #b3261e; }
+
+  details.help { font-size: 12.5px; color: #55636c; margin-top: 10px; }
+  details.help summary { cursor: pointer; color: var(--navy); font-weight: 600; }
+  details.help ol { margin: 8px 0 0 0; padding-left: 20px; line-height: 1.6; }
+
+  .slip {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 40px 46px;
+    display: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .slip.show { display: block; }
+
+  .letterhead { text-align: center; border-bottom: 3px double var(--navy); padding-bottom: 14px; margin-bottom: 22px; }
+  .letterhead .org1 { font-size: 12px; letter-spacing: 1px; color: #55636c; }
+  .letterhead .org2 { font-size: 19px; font-weight: 700; color: var(--navy-dark); margin: 3px 0; }
+  .letterhead .doctitle { font-size: 15px; font-weight: 700; margin-top: 10px; text-transform: uppercase; color: var(--navy); }
+  .letterhead .year { font-size: 12.5px; color: #55636c; margin-top: 2px; }
+
+  .infobox {
+    display: grid; grid-template-columns: 130px 1fr; gap: 6px 10px; font-size: 13.5px;
+    margin-bottom: 22px; background: #f6f9fb; border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px;
+  }
+  .infobox .lbl { color: #55636c; }
+  .infobox .val { font-weight: 600; color: #1c2a33; }
+
+  .section-title {
+    font-size: 13.5px; font-weight: 700; color: #fff; background: var(--navy);
+    padding: 7px 12px; border-radius: 5px; margin: 22px 0 10px 0; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+
+  table.rekod { width: 100%; border-collapse: collapse; font-size: 12.3px; }
+  table.rekod th, table.rekod td { border: 1px solid #b9c4cc; padding: 6px 8px; text-align: left; vertical-align: top; }
+  table.rekod th { background: #dde8f0; color: var(--navy-dark); font-weight: 700; white-space: nowrap; }
+  table.rekod td.no { text-align: center; width: 28px; }
+  table.rekod td.num { text-align: center; white-space: nowrap; }
+  table.rekod tr:nth-child(even) td { background: #f8fafb; }
+  .empty-note { font-size: 12.5px; color: #8a96a0; font-style: italic; padding: 8px 2px; }
+
+  .jumlah-box { margin-top: 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .jumlah-box .cell { background: #f6f9fb; border: 1px solid var(--border); border-radius: 8px; padding: 10px 8px; text-align: center; }
+  .jumlah-box .cell .n { font-size: 19px; font-weight: 800; color: var(--navy-dark); }
+  .jumlah-box .cell .l { font-size: 10.8px; color: #55636c; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.3px; }
+
+  .pengesahan { margin-top: 34px; font-size: 13px; line-height: 1.7; }
+  .disediakan { margin-top: 30px; font-size: 12.8px; color: #3a4750; }
+  .footer-note { margin-top: 26px; font-size: 10.5px; color: #94a0a8; text-align: right; }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .panel { display: none !important; }
+    .slip { border: none; box-shadow: none; padding: 10mm; border-radius: 0; }
+    .wrap { max-width: 100%; }
+    table.rekod tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="panel">
+    <h2>1. Paste Data dari Google Sheet</h2>
+    <div class="desc">Dalam Google Sheet "LATIHAN DALAM PERKHIDMATAN FISIOTERAPI", block/select dari baris header (NAMA / KURSUS.../ CME...) sampai baris terakhir data (semua staf sekali), <b>Ctrl+C</b>, then paste kat bawah ni (<b>Ctrl+V</b>). Tak payah edit apa-apa &mdash; parser terus faham struktur asal sheet.</div>
+    <textarea id="pasteArea" placeholder="Paste data di sini (Ctrl+V)..."></textarea>
+    <div class="row">
+      <button id="btnParse">Parse Data</button>
+      <button id="btnClear" class="secondary">Kosongkan</button>
+    </div>
+    <div class="status" id="parseStatus"></div>
+    <details class="help">
+      <summary>Tak reti nak block yang mana? Klik sini</summary>
+      <ol>
+        <li>Buka Google Sheet, pergi ke Sheet1.</li>
+        <li>Klik cell A5 (baris header "NAMA"), tekan <b>Ctrl+Shift+End</b> untuk select sampai hujung data.</li>
+        <li>Ctrl+C untuk copy.</li>
+        <li>Klik dalam kotak paste di atas, Ctrl+V.</li>
+        <li>Klik "Parse Data" &mdash; senarai nama staf akan keluar dalam dropdown bawah.</li>
+      </ol>
+    </details>
+  </div>
+
+  <div class="panel" id="selectPanel" style="display:none;">
+    <h2>2. Pilih Staf &amp; Jana Slip</h2>
+    <div class="row">
+      <select id="staffSelect"><option value="">— Pilih Nama Staf —</option></select>
+      <button id="btnJana">Jana Slip</button>
+      <button id="btnPrint" class="secondary" style="display:none;">Cetak / Simpan PDF</button>
+    </div>
+  </div>
+
+  <div class="slip" id="slip">
+    <div class="letterhead">
+      <div class="org1">KEMENTERIAN KESIHATAN MALAYSIA</div>
+      <div class="org2">UNIT FISIOTERAPI, HOSPITAL TUNKU AZIZAH</div>
+      <div class="doctitle">Slip Pengesahan Latihan &amp; CME</div>
+      <div class="year" id="tahunLabel">Tahun 2026</div>
+    </div>
+
+    <div class="infobox">
+      <div class="lbl">Nama</div><div class="val" id="fNama">-</div>
+      <div class="lbl">Gred / Jawatan</div><div class="val" id="fGred">-</div>
+    </div>
+
+    <div class="section-title">Senarai Kursus / Latihan Dihadiri</div>
+    <table class="rekod" id="tblKursus">
+      <thead><tr>
+        <th class="no">Bil</th><th>Kursus / Latihan</th><th>Tarikh</th><th>Tempat</th>
+        <th>Bil Hari</th><th>Bil Jam</th><th>MYCPD</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="section-title">Senarai CME Dihadiri</div>
+    <table class="rekod" id="tblCme">
+      <thead><tr>
+        <th class="no">Bil</th><th>CME</th><th>Tarikh</th><th>Tempat</th><th>Bil Jam</th><th>MYCPD</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="jumlah-box">
+      <div class="cell"><div class="n" id="jHari">-</div><div class="l">Jumlah Hari</div></div>
+      <div class="cell"><div class="n" id="jJamKursus">-</div><div class="l">Jam Kursus</div></div>
+      <div class="cell"><div class="n" id="jMycpd">-</div><div class="l">MYCPD Kursus</div></div>
+      <div class="cell"><div class="n" id="jJamCme">-</div><div class="l">Jam CME</div></div>
+      <div class="cell"><div class="n" id="jJumlahJam">-</div><div class="l">Jumlah Jam Keseluruhan</div></div>
+    </div>
+
+    <div class="pengesahan">
+      Adalah disahkan bahawa <b id="pNama">-</b> telah menghadiri kursus/latihan dan CME
+      sebagaimana senarai di atas sepanjang tahun berkenaan.
+    </div>
+
+    <div class="disediakan">
+      Disediakan oleh: <b>Jawatankuasa CME &amp; Latihan, Unit Fisioterapi Hospital Tunku Azizah</b>
+    </div>
+
+    <div class="footer-note" id="tarikhCetak"></div>
+  </div>
+
+</div>
+
+<script>
+  // ---------- Lajur ikut susunan asal Sheet1 (0-indexed) ----------
+  var COL = {
+    NAMA: 0, DIRANCANG: 1, KURSUS: 2, TARIKH: 3, TEMPAT: 4, HARI: 5, JAM: 6, MYCPD: 7,
+    CME: 8, CME_TARIKH: 9, CME_TEMPAT: 10, CME_JAM: 11, CME_MYCPD: 12, JUMLAH: 13
+  };
+  var NUM_COLS = 14;
+  var staffData = [];
+
+  // Tokenizer TSV yang faham "quoted field" (cell yang ada line-break
+  // dalam dia sendiri, cth senarai CME bernombor, akan di-wrap dalam
+  // tanda petik oleh Google Sheets bila di-copy) - kalau guna split('\n')
+  // biasa je, cell macam ni akan terputus jadi baris berasingan & rosakkan
+  // seluruh parsing lepas tu.
+  function parseDelimitedText(text, delim) {
+    var rows = [];
+    var row = [];
+    var field = '';
+    var inQuotes = false;
+    var i = 0;
+    var len = text.length;
+    while (i < len) {
+      var ch = text[i];
+      if (inQuotes) {
+        if (ch === '"') {
+          if (text[i + 1] === '"') { field += '"'; i += 2; continue; }
+          inQuotes = false; i++; continue;
+        }
+        field += ch; i++; continue;
+      } else {
+        if (ch === '"' && field === '') { inQuotes = true; i++; continue; }
+        if (ch === delim) { row.push(field); field = ''; i++; continue; }
+        if (ch === '\r') { i++; continue; }
+        if (ch === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+        field += ch; i++; continue;
+      }
+    }
+    row.push(field);
+    rows.push(row);
+    return rows;
+  }
+
+  function isRowBlank(row) {
+    for (var i = 0; i < row.length; i++) { if (row[i]) return false; }
+    return true;
+  }
+
+  // Sesetengah baris jumlah dalam sheet asal tulis Bil Hari sebagai angka
+  // kosong je (cth "4") tanpa perkataan "HARI" - kalau parser wajibkan
+  // perkataan "HARI"/"JUMLAH" wujud, baris macam ni akan terlepas pandang,
+  // dan staf lepas tu akan "termasuk" sekali dalam rekod staf sebelumnya.
+  // Jadi kita guna pendekatan struktur: NAMA/KURSUS/CME kosong + sekurang-
+  // kurangnya 2 lajur ringkasan (Hari/Jam/MYCPD/Jam CME/Jumlah) nampak
+  // macam token nombor ringkas (bukan ayat/teks panjang).
+  var NUMERIC_TOKEN = /^\d+(?:\s*1\/2)?\s*(?:HARI|JAM|POINT|MIN)?$/i;
+  function isNumericToken(cell) {
+    return NUMERIC_TOKEN.test(String(cell).trim());
+  }
+  function isTotalsRow(row) {
+    if (row[COL.NAMA] || row[COL.KURSUS] || row[COL.CME]) return false;
+    var checkCols = [COL.HARI, COL.JAM, COL.MYCPD, COL.CME_JAM, COL.JUMLAH];
+    var count = 0;
+    checkCols.forEach(function (c) { if (isNumericToken(row[c])) count++; });
+    return count >= 2;
+  }
+
+  function findInWindow(row, cols, pattern) {
+    for (var i = 0; i < cols.length; i++) {
+      var c = cols[i];
+      if (c < 0 || c >= row.length) continue;
+      var cell = row[c];
+      if (!cell) continue;
+      var m = cell.match(pattern);
+      if (m) return m[1];
+    }
+    return '';
+  }
+
+  function findBareDigit(row, cols) {
+    for (var i = 0; i < cols.length; i++) {
+      var c = cols[i];
+      if (c < 0 || c >= row.length) continue;
+      var cell = String(row[c]).trim();
+      if (/^\d+$/.test(cell)) return cell;
+    }
+    return '';
+  }
+
+  function parseTotals(row) {
+    return {
+      hari: findInWindow(row, [3, 4, 5, 6], /(\d+(?:\s*1\/2)?)\s*HARI/i) || findBareDigit(row, [5]),
+      jamKursus: findInWindow(row, [5, 6, 7], /(\d+)\s*JAM/i),
+      mycpd: findInWindow(row, [6, 7, 8], /(\d+)\s*POINT/i) || findBareDigit(row, [7]),
+      jamCme: findInWindow(row, [9, 10, 11], /(\d+)\s*JAM/i),
+      jumlahJam: findInWindow(row, [13, 12], /(\d+)\s*JAM/i)
+    };
+  }
+
+  // Parse teks yang dipaste (TSV - tab separated, macam bila copy dari
+  // Google Sheets) jadi array staf lengkap, ikut logik sama macam parser
+  // Apps Script (baris jumlah / nama-gred / kursus / cme).
+  function parsePastedData(text) {
+    var rawRows = parseDelimitedText(text, '\t');
+    var rows = rawRows.map(function (cells) {
+      cells = cells.map(function (c) { return (c || '').trim(); });
+      while (cells.length < NUM_COLS) cells.push('');
+      return cells;
+    });
+
+    // cari baris header (lajur A === "NAMA")
+    var headerIdx = -1;
+    for (var i = 0; i < rows.length; i++) {
+      if (rows[i][COL.NAMA].toUpperCase() === 'NAMA') { headerIdx = i; break; }
+    }
+    if (headerIdx === -1) headerIdx = -1; // takde header, anggap semua baris ialah data
+
+    var staffList = [];
+    var current = null;
+
+    for (var r = headerIdx + 1; r < rows.length; r++) {
+      var row = rows[r];
+      if (isRowBlank(row)) continue;
+
+      if (isTotalsRow(row)) {
+        if (current) {
+          current.jumlah = parseTotals(row);
+          staffList.push(current);
+          current = null;
+        }
+        continue;
+      }
+
+      if (row[COL.NAMA]) {
+        if (!current) {
+          current = { nama: row[COL.NAMA], gred: '', kursus: [], cme: [], jumlah: null };
+        } else if (!current.gred) {
+          current.gred = row[COL.NAMA];
+        }
+      }
+
+      if (!current) continue;
+
+      if (row[COL.KURSUS]) {
+        current.kursus.push({
+          kursus: row[COL.KURSUS], tarikh: row[COL.TARIKH], tempat: row[COL.TEMPAT],
+          hari: row[COL.HARI], jam: row[COL.JAM], mycpd: row[COL.MYCPD]
+        });
+      }
+      if (row[COL.CME]) {
+        current.cme.push({
+          cme: row[COL.CME], tarikh: row[COL.CME_TARIKH], tempat: row[COL.CME_TEMPAT],
+          jam: row[COL.CME_JAM], mycpd: row[COL.CME_MYCPD]
+        });
+      }
+    }
+    if (current) staffList.push(current);
+    return staffList;
+  }
+
+  // ---------- UI ----------
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  function renderRows(tableId, items, cols) {
+    var tbody = document.querySelector('#' + tableId + ' tbody');
+    tbody.innerHTML = '';
+    if (!items.length) {
+      var tr = document.createElement('tr');
+      var td = document.createElement('td');
+      td.colSpan = cols;
+      td.className = 'empty-note';
+      td.textContent = 'Tiada rekod.';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+      return;
+    }
+    items.forEach(function (item, i) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = item.map(function (v, ci) {
+        if (ci === 0) return '<td class="no">' + (i + 1) + '</td>';
+        var numCol = (cols === 7 && (ci === 4 || ci === 5 || ci === 6)) || (cols === 6 && (ci === 4 || ci === 5));
+        return '<td class="' + (numCol ? 'num' : '') + '">' + esc(v).replace(/\n/g, '<br>') + '</td>';
+      }).join('');
+      tbody.appendChild(tr);
+    });
+  }
+
+  function janaSlip() {
+    var idx = document.getElementById('staffSelect').value;
+    if (idx === '') return;
+    var s = staffData[idx];
+
+    document.getElementById('fNama').textContent = s.nama;
+    document.getElementById('fGred').textContent = s.gred || '-';
+    document.getElementById('pNama').textContent = s.nama;
+
+    renderRows('tblKursus', s.kursus.map(function (k) {
+      return [null, k.kursus, k.tarikh, k.tempat, k.hari, k.jam, k.mycpd];
+    }), 7);
+    renderRows('tblCme', s.cme.map(function (c) {
+      return [null, c.cme, c.tarikh, c.tempat, c.jam, c.mycpd];
+    }), 6);
+
+    var j = s.jumlah || {};
+    document.getElementById('jHari').textContent = j.hari || '0';
+    document.getElementById('jJamKursus').textContent = j.jamKursus || '0';
+    document.getElementById('jMycpd').textContent = j.mycpd || '0';
+    document.getElementById('jJamCme').textContent = j.jamCme || '0';
+    document.getElementById('jJumlahJam').textContent = j.jumlahJam || '0';
+
+    document.getElementById('tarikhCetak').textContent = 'Dijana pada ' +
+      new Date().toLocaleDateString('ms-MY', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    document.getElementById('slip').classList.add('show');
+    document.getElementById('btnPrint').style.display = 'inline-block';
+    document.getElementById('slip').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  document.getElementById('btnParse').addEventListener('click', function () {
+    var text = document.getElementById('pasteArea').value;
+    var statusEl = document.getElementById('parseStatus');
+    if (!text.trim()) {
+      statusEl.className = 'status err';
+      statusEl.textContent = 'Kotak paste kosong. Paste data dulu.';
+      return;
+    }
+    try {
+      staffData = parsePastedData(text);
+      var sel = document.getElementById('staffSelect');
+      sel.innerHTML = '<option value="">— Pilih Nama Staf —</option>';
+      staffData.forEach(function (s, i) {
+        var opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = s.nama;
+        sel.appendChild(opt);
+      });
+      if (staffData.length) {
+        statusEl.className = 'status ok';
+        statusEl.textContent = staffData.length + ' rekod staf berjaya dijumpai. Pilih nama di bawah.';
+        document.getElementById('selectPanel').style.display = 'block';
+      } else {
+        statusEl.className = 'status err';
+        statusEl.textContent = 'Tiada rekod staf dikesan. Pastikan baris header "NAMA" turut di-copy.';
+      }
+    } catch (e) {
+      statusEl.className = 'status err';
+      statusEl.textContent = 'Ralat semasa parse: ' + e.message;
+    }
+  });
+
+  document.getElementById('btnClear').addEventListener('click', function () {
+    document.getElementById('pasteArea').value = '';
+    document.getElementById('parseStatus').textContent = '';
+    document.getElementById('selectPanel').style.display = 'none';
+    document.getElementById('slip').classList.remove('show');
+  });
+
+  document.getElementById('btnJana').addEventListener('click', janaSlip);
+  document.getElementById('btnPrint').addEventListener('click', function () { window.print(); });
+  document.getElementById('staffSelect').addEventListener('change', function () {
+    document.getElementById('slip').classList.remove('show');
+    document.getElementById('btnPrint').style.display = 'none';
+  });
+</script>
+</body>
 </html>
